@@ -144,9 +144,11 @@ is_space(c::UInt8) = c == UInt8(' ') || c == UInt8('\t') || c == UInt8('\r') || 
 function body_int(stream::HTTP.Stream)
     buf = Vector{UInt8}(undef, 64)
     n = readbytes!(stream, buf)
-    if n == length(buf) && !eof(stream)
-        append!(buf, read(stream))
-        n = length(buf)
+    while !eof(stream)
+        n == length(buf) && resize!(buf, 2 * length(buf))
+        m = readbytes!(stream, view(buf, n + 1:length(buf)))
+        m == 0 && break
+        n += m
     end
     lo, hi = 1, n
     @inbounds while lo <= hi && is_space(buf[lo])

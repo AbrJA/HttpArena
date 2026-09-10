@@ -42,8 +42,9 @@ The same routes are served over TLS on port 8081 for `json-tls`.
 - Request bodies are read with `readbytes!` into a small buffer instead of
   `read(stream)`. HTTP.jl's `read(stream)` allocates a fresh 16 KiB vector per
   call and grows the result with `append!`, which is 16 KiB of work for the
-  two-byte POST bodies the baseline profile sends; a body that fills the buffer
-  still falls back to the general path
+  two-byte POST bodies the baseline profile sends; a body the first read does
+  not consume whole (large, or chunked in several frames) is read in further
+  pieces through the same buffer
 - Responses set Content-Length, which is what puts HTTP.jl on its fixed length
   path where head and body leave in a single write
 - json-tls is served by wrapping a `TCP.Listener` in a `TLS.Listener` and handing
